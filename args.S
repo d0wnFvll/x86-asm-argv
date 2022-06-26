@@ -8,22 +8,27 @@ envp:
 	.asciz "%s\n"
 
 .section .text
-	.globl main
+.globl main
 
 #			Stack
-# saved EBP			<-- ebp
-# return address	<-- ebp + 4
-# agrc				<-- ebp + 8
-# argv				<-- ebp + 12
-# envp				<-- ebp + 16
+# saved EBP			<-- EBP
+# return address	<-- EBP + 4
+# agrc				<-- EBP + 8
+# argv				<-- EBP + 12
+# envp				<-- EBP + 16
 main:
 	pushl %ebp
 	movl %esp, %ebp
 
+	# push ecx and esi because
+	# they are used throughout the function
+	pushl %ecx
+	pushl %esi
+
 	# move argc into ecx
 	movl 8(%ebp), %ecx
 	# move argv base address into esi
-	movl 12(%esp), %esi
+	movl 12(%ebp), %esi
 
 	# print numbers of
 	# passed arguments (argc)
@@ -75,10 +80,12 @@ pr_envp:
 	jmp pr_envp
 
 out:
-	movl %ebp, %esp
-	popl %ebp
-
-	# return 0
+	# set up return value
 	movl $0, %eax
+
+	popl %esi
+	popl %ecx
+
+	leave
 	ret
 
