@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-m32 -no-pie -g
+CFLAGS=-m32 -O0 -no-pie -g
 
 OBJ=args
 SRC=args.S
