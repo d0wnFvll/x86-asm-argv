@@ -6,14 +6,18 @@ argv:
 	.asciz "arg = %s\n"
 envp:
 	.asciz "%s\n"
-newline:
-	.asciz "\n"
 
 .section .text
 	.globl main
 
+#			Stack
+# saved EBP			<-- ebp
+# return address	<-- ebp + 4
+# agrc				<-- ebp + 8
+# argv				<-- ebp + 12
+# envp				<-- ebp + 16
 main:
-	pushl %esp
+	pushl %ebp
 	movl %esp, %ebp
 
 	# move argc into ecx
@@ -51,8 +55,8 @@ pr_args:
 	jmp pr_args
 
 pr_args_out:
-	pushl $newline
-	call printf
+	pushl $0xa # '\n'
+	call putchar
 	addl $4, %esp
 
 	movl 16(%ebp), %esi
@@ -72,7 +76,7 @@ pr_envp:
 
 out:
 	movl %ebp, %esp
-	popl %esp
+	popl %ebp
 
 	# return 0
 	movl $0, %eax
