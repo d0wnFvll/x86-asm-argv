@@ -13,25 +13,18 @@
 
 /*
 			Stack
-	saved EBP			<-- EBP
-	return address		<-- EBP + 4
-	agrc				<-- EBP + 8
-	argv				<-- EBP + 12
 	envp				<-- EBP + 16
+	argv				<-- EBP + 12
+	agrc				<-- EBP + 8
+	return address		<-- EBP + 4
+	saved EBP			<-- EBP
 */
 main:
 	pushl %ebp
 	movl %esp, %ebp
 
-	/*
-		push ecx and esi because
-		they are used throughout the function
-	*/
-	pushl %ecx
-	pushl %esi
-
-	/* move argc into ecx */
-	movl 8(%ebp), %ecx
+	/* move argc into edi */
+	movl 8(%ebp), %edi
 	/* move argv base address into esi */
 	movl 12(%ebp), %esi
 
@@ -39,33 +32,33 @@ main:
 		print numbers of
 		passed arguments (argc)
 	*/
-	pushl %ecx
+	pushl %edi
 	pushl $.LCargc
 	call printf
 	addl $4, %esp
-	popl %ecx
+	popl %edi
 
-	dec %ecx
+	dec %edi
 .Lpr_args:
-	cmpl $0, %ecx
+	cmpl $0, %edi
 	jl .Lpr_args_out
 
 	/*
-		push ecx onto the stack
+		push edi onto the stack
 		because function may affect it
 	*/
-	pushl %ecx
+	pushl %edi
 	pushl (%esi)
 	pushl $.LCargv
 	call printf
 	addl $4, %esp
 	popl (%esi)
-	popl %ecx
+	popl %edi
 
 	/* point to the next arg */
 	addl $4, %esi
 
-	dec %ecx
+	dec %edi
 	jmp .Lpr_args
 
 .Lpr_args_out:
@@ -91,9 +84,6 @@ main:
 .Lout:
 	/* set up return value */
 	movl $0, %eax
-
-	popl %esi
-	popl %ecx
 
 	leave
 	ret
