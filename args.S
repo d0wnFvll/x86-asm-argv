@@ -3,7 +3,7 @@
 .LCargc:
 	.string "argc = %d\n\n"
 .LCargv:
-	.string "arg = %s\n"
+	.string "argv[%d] = %s\n"
 .LCenvp:
 	.string "%s\n"
 
@@ -16,8 +16,9 @@
 	envp				<-- EBP + 16
 	argv				<-- EBP + 12
 	agrc				<-- EBP + 8
-	return address		<-- EBP + 4
+	return address      <-- EBP + 4
 	saved EBP			<-- EBP
+	local argv index	<-- EBP - 4
 */
 main:
 	pushl %ebp
@@ -28,9 +29,12 @@ main:
 	/* move argv base address into esi */
 	movl 12(%ebp), %esi
 
+	/* local index for argv */
+	subl $4, %esp
+	movl $0, -4(%ebp)
+
 	/*
-		print numbers of
-		passed arguments (argc)
+ 	   print numbers of passed arguments (argc)
 	*/
 	pushl %edi
 	pushl $.LCargc
@@ -43,18 +47,15 @@ main:
 	cmpl $0, %edi
 	jl .Lpr_args_out
 
-	/*
-		push edi onto the stack
-		because function may affect it
-	*/
-	pushl %edi
-	pushl (%esi)
-	pushl $.LCargv
+	pushl (%esi) /* element in argv */
+	pushl -4(%ebp) /* index */
+	pushl $.LCargv /* format */
 	call printf
 	addl $4, %esp
+	popl -4(%ebp)
 	popl (%esi)
-	popl %edi
 
+	incl -4(%ebp)
 	/* point to the next arg */
 	addl $4, %esi
 
@@ -69,11 +70,12 @@ main:
 	movl 16(%ebp), %esi
 
 .Lpr_envp:
+	/* envp is a null terminated array */
 	cmpl $0, (%esi)
 	je .Lout
 
-	pushl (%esi)
-	pushl $.LCenvp
+	pushl (%esi) /* environment variable */
+	pushl $.LCenvp /* format */
 	call printf
 	addl $4, %esp
 	popl (%esi)
