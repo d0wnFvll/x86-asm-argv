@@ -42,10 +42,9 @@ main:
 	addl $4, %esp
 	popl %edi
 
-	dec %edi
 .Lpr_args:
-	cmpl $0, %edi
-	jl .Lpr_args_out
+	cmpl -4(%ebp), %edi
+	je .Lpr_args_out
 
 	pushl (%esi) /* element in argv */
 	pushl -4(%ebp) /* index */
@@ -59,7 +58,6 @@ main:
 	/* point to the next arg */
 	addl $4, %esi
 
-	dec %edi
 	jmp .Lpr_args
 
 .Lpr_args_out:
